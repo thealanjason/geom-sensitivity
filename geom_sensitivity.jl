@@ -345,3 +345,89 @@ MC_areas
 calculate_area(s)
 mean_area = mean(MC_areas)
 variance = (std(MC_areas))^2
+
+
+```
+You're absolutely correct! If the vectors **\( \vec{AB} \), \( \vec{AC} \), and \( \vec{AD} \)** are parallel (or nearly parallel), the **scalar triple product** will return zero, which is incorrect for this case since parallel vectors mean there’s no volume in that orientation. 
+
+In the case of a **triangular prism with varying heights** between corresponding vertices of the two triangles, we can't rely on this method because the scalar triple product assumes the vectors span a three-dimensional space. If the vectors are parallel, they essentially describe a **degenerate geometry**.
+
+### Correct Approach: Decompose into Multiple Tetrahedrons
+
+For a situation where the triangles are aligned but differ only in their \( z \)-coordinates, we can break the prism into **three tetrahedrons**—one for each pair of corresponding vertices. We can compute the volume of each tetrahedron and sum them to get the total volume of the prism.
+
+### Steps for Tetrahedron Decomposition:
+
+1. **Vertices of the two triangles**:
+   - Triangle 1: \( (x_1, y_1, z_1), (x_2, y_2, z_2), (x_3, y_3, z_3) \)
+   - Triangle 2: \( (x_1', y_1', z_1'), (x_2', y_2', z_2'), (x_3', y_3', z_3') \)
+
+2. **Form three tetrahedrons** between the two triangles:
+   - Tetrahedron 1: Vertices \( (x_1, y_1, z_1), (x_2, y_2, z_2), (x_3, y_3, z_3), (x_1', y_1', z_1') \)
+   - Tetrahedron 2: Vertices \( (x_2, y_2, z_2), (x_3, y_3, z_3), (x_1', y_1', z_1'), (x_2', y_2', z_2') \)
+   - Tetrahedron 3: Vertices \( (x_3, y_3, z_3), (x_1', y_1', z_1'), (x_2', y_2', z_2'), (x_3', y_3', z_3') \)
+
+3. **Compute the volume of each tetrahedron** using the following formula for a tetrahedron with vertices \( A(x_1, y_1, z_1), B(x_2, y_2, z_2), C(x_3, y_3, z_3), D(x_4, y_4, z_4) \):
+
+\[
+V_{\text{tetrahedron}} = \frac{1}{6} \left| \begin{vmatrix} 
+x_1 & y_1 & z_1 & 1 \\ 
+x_2 & y_2 & z_2 & 1 \\
+x_3 & y_3 & z_3 & 1 \\
+x_4 & y_4 & z_4 & 1 \\
+\end{vmatrix} \right|
+\]
+
+### Code Example:
+
+import numpy as np
+
+def volume_of_tetrahedron(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4):
+    # Create the matrix for the vertices
+    matrix = np.array([
+        [x1, y1, z1, 1],
+        [x2, y2, z2, 1],
+        [x3, y3, z3, 1],
+        [x4, y4, z4, 1]
+    ])
+    
+    # Compute the determinant and the volume of the tetrahedron
+    volume = abs(np.linalg.det(matrix)) / 6.0
+    return volume
+
+def volume_of_irregular_prism(x1, y1, z1, x2, y2, z2, x3, y3, z3, x1_prime, y1_prime, z1_prime, x2_prime, y2_prime, z2_prime, x3_prime, y3_prime, z3_prime):
+    # Calculate the volumes of the three tetrahedrons
+    V1 = volume_of_tetrahedron(x1, y1, z1, x2, y2, z2, x3, y3, z3, x1_prime, y1_prime, z1_prime)
+    V2 = volume_of_tetrahedron(x2, y2, z2, x3, y3, z3, x1_prime, y1_prime, z1_prime, x2_prime, y2_prime, z2_prime)
+    V3 = volume_of_tetrahedron(x3, y3, z3, x1_prime, y1_prime, z1_prime, x2_prime, y2_prime, z2_prime, x3_prime, y3_prime, z3_prime)
+    
+    # Total volume of the irregular prism
+    total_volume = V1 + V2 + V3
+    
+    return total_volume
+
+# Example usage
+x1, y1, z1 = 0, 0, 1
+x2, y2, z2 = 1, 0, 1
+x3, y3, z3 = 0, 1, 1
+
+x1_prime, y1_prime, z1_prime = 0, 0, 0
+x2_prime, y2_prime, z2_prime = 1, 0, 0
+x3_prime, y3_prime, z3_prime = 0, 1, 0
+
+volume = volume_of_irregular_prism(x1, y1, z1, x2, y2, z2, x3, y3, z3, x1_prime, y1_prime, z1_prime, x2_prime, y2_prime, z2_prime, x3_prime, y3_prime, z3_prime)
+print(f"The volume of the irregular triangular prism is: {volume}")
+
+### Explanation:
+
+1. **`volume_of_tetrahedron`**: This function calculates the volume of a tetrahedron given four points using the determinant of a \( 4 \times 4 \) matrix.
+   - The matrix includes the \( x, y, z \)-coordinates of the vertices and a column of 1’s to make the determinant work.
+
+2. **`volume_of_irregular_prism`**: This function calculates the total volume by summing the volumes of the three tetrahedrons that make up the irregular prism.
+
+### Summary:
+- **Tetrahedron decomposition** works even if the two triangles have vertices with varying \( z \)-coordinates, and the faces are not parallel.
+- The total volume is the sum of the volumes of the three tetrahedrons formed between the two triangles.
+  
+This method avoids issues with parallel vectors and provides the correct volume for an irregular triangular prism where the height between the triangles differs at each vertex.
+```
